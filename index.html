@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>イベント管理システム(ナゴビュー)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .hidden { display: none; }
+    
+    /* 共通コンテナ */
+    #auth, #register, #main, #applyForm, #eventDetail { 
+      max-width: 600px; 
+      margin: 40px auto; 
+      background: #fff; 
+      padding: 40px; 
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+    
+    h2 { 
+      margin-bottom: 25px; 
+      color: #667eea;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    
+    /* 入力フィールド */
+    input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    /* ボタン */
+    button {
+      padding: 12px 24px;
+      margin: 8px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    /* イベントリスト */
+    .event { 
+      display: flex; 
+      align-items: center; 
+      margin-bottom: 15px; 
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #f8f9ff;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .event:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .event img { 
+      width: 70px; 
+      height: 70px; 
+      object-fit: cover; 
+      border-radius: 8px; 
+      margin-right: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .event.applied { 
+      background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+      border: 2px solid #29b6f6;
+    }
+    
+    .event.gray { 
+      background: #f5f5f5; 
+      color: #aaa; 
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .event .labels { 
+      margin-left: auto; 
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .label { 
+      display: inline-block; 
+      background: #667eea;
+      color: #fff; 
+      border-radius: 20px; 
+      padding: 6px 12px; 
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .label.edited { background: #ffa726; }
+    .label.gray { background: #bbb; }
+    
+    /* メッセージ */
+    #authMsg, #regMsg {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #ffebee;
+      color: #c62828;
+      font-size: 13px;
+      display: none;
+    }
+    
+    #authMsg:not(:empty), #regMsg:not(:empty) {
+      display: block;
+    }
+    
+    /* ユーザー情報 */
+    #userEmail {
+      display: block;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    /* フォーム */
+    #applyForm, #eventDetail { display: none; }
+    
+    .member-row { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    
+    .member-row span {
+      min-width: 70px;
+      font-weight: 600;
+      color: #667eea;
+      font-size: 13px;
+    }
+    
+    .member-row input { 
+      flex: 1;
+      min-width: 80px;
+    }
+    
+    /* QR コード */
+    #qrcode { 
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 10px;
+    }
+    
+    /* ユーザー情報ヘッダー */
+    #main > div:first-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ログイン/新規登録画面 -->
+  <div id="auth">
+    <h2>ログイン / 新規登録</h2>
+    <input id="authEmail" type="email" placeholder="メールアドレス"><br>
+    <input id="authPassword" type="password" placeholder="パスワード"><br>
+    <button onclick="showRegister()">新規登録</button>
+    <button onclick="login()">ログイン</button>
+    <div id="authMsg"></div>
+  </div>
+
+  <!-- 新規登録画面（ユーザー名入力） -->
+  <div id="register" class="hidden">
+    <h2>新規登録</h2>
+    <div>メールアドレス: <span id="regEmail"></span></div>
+    <input id="regName" type="text" placeholder="ユーザー名"><br>
+    <input id="regPassword" type="password" placeholder="パスワード"><br>
+    <button onclick="doRegister()">登録</button>
+    <button onclick="cancelRegister()">キャンセル</button>
+    <div id="regMsg"></div>
+  </div>
+
+  <div id="main" style="display:none">
+  <div>
+    <span id="userEmail"></span>
+    <button onclick="logout()">ログアウト</button>
+  </div>
+  <h2>イベント一覧</h2>
+  <div id="eventList"></div>
+</div>
+
+  <!-- 申請フォーム -->
+  <div id="applyForm">
+    <h2 id="applyTitle"></h2>
+    <form id="applyFormElem" onsubmit="submitApply(event)">
+      <div>
+        参加人数:
+        <input type="number" id="applyNum" min="1" max="10" value="1" required onchange="updateMemberInputs()">
+      </div>
+      <div id="membersArea"></div>
+      <div>
+        備考:
+        <input type="text" id="applyNote">
+      </div>
+      <button type="submit">申請</button>
+      <button type="button" onclick="closeApplyForm()">キャンセル</button>
+    </form>
+  </div>
+
+  <!-- イベント詳細＋QRコード -->
+  <div id="eventDetail">
+    <h2 id="detailTitle"></h2>
+    <div id="detailInfo"></div>
+    <div id="qrcode"></div>
+    <button id="editBtn" onclick="showEditForm()">編集</button>
+    <button id="cancelBtn" onclick="cancelApply()">申請キャンセル</button>
+    <button onclick="closeDetail()">閉じる</button>
+  </div>
+
+
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // ユーザー情報配列 [{email, name, password}]
+    let users = [];
+    // 現在ログイン中のユーザーオブジェクト
+    let user = null;
+
+    // 初期化
+    loadUsers();
+    loadSession();
+    render();
+
+    // --- ユーザー管理 ---
+    function loadUsers() {
+      users = JSON.parse(localStorage.getItem('users')) || [];
+    }
+    function saveUsers() {
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    function saveSession() {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
+    function loadSession() {
+      const raw = localStorage.getItem('currentUser');
+      if (!raw) {
+        user = null;
+        return;
+      }
+      try {
+        user = JSON.parse(raw);
+      } catch (e) {
+        // 旧データ形式（文字列emailのみ）との互換
+        user = users.find(u => u.email === raw) || null;
+      }
+      if (user && typeof user === 'string') {
+        user = users.find(u => u.email === user) || null;
+      }
+    }
+    function clearSession() {
+      localStorage.removeItem('currentUser');
+      user = null;
+    }
+
+    // --- 画面描画 ---
+    function render() {
+      document.getElementById('auth').classList.add('hidden');
+      document.getElementById('register').classList.add('hidden');
+      document.getElementById('main').classList.add('hidden');
+      if (!user) {
+        //未登録の場合
+        document.getElementById('auth').classList.remove('hidden');
+        document.getElementById('authMsg').textContent = '';
+      } else {
+        // 登録済みの場合
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('userEmail').textContent = `${user.name}（${user.email}）`;
+        
+        document.getElementById("main").style.display = "block";
+        
+        renderEventList();
+      }
+    }
+
+    // --- メールアドレス形式チェック ---
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    // --- 新規登録フロー ---
+    function showRegister() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) {
+        document.getElementById('authMsg').textContent = 'メールとパスワードを入力してください。';
+        return;
+      }
+      // メール形式チェック
+      if (!isValidEmail(email)) {
+        document.getElementById('authMsg').textContent = '正しいメールアドレス形式で入力してください。';
+        return;
+      }
+      // 既存チェック
+      if (users.some(u => u.email === email)) {
+        document.getElementById('authMsg').textContent = 'このメールアドレスは既に登録済みです。';
+        return;
+      }
+      // 新規登録画面へ
+      document.getElementById('auth').classList.add('hidden');
+      document.getElementById('register').classList.remove('hidden');
+      document.getElementById('regEmail').textContent = email;
+      document.getElementById('regName').value = '';
+      document.getElementById('regPassword').value = password;
+      document.getElementById('regPassword').classList.add('hidden');
+      document.getElementById('regMsg').textContent = '';
+    }
+
+    function doRegister() {
+      const email = document.getElementById('regEmail').textContent;
+      const name = document.getElementById('regName').value.trim();
+      const password = document.getElementById('regPassword').value;
+      if (!name || !password) {
+        document.getElementById('regMsg').textContent = 'ユーザー名とパスワードを入力してください。';
+        return;
+      }
+      if (users.some(u => u.email === email)) {
+        document.getElementById('regMsg').textContent = 'このメールアドレスは既に登録済みです。';
+        return;
+      }
+      users.push({ email, name, password });
+      saveUsers();
+      // ログイン状態にする
+      user = { email, name, password };
+      saveSession();
+
+      document.getElementById("register").style.display = "none";
+      document.getElementById("main").style.display = "block";
+      document.getElementById('userEmail').textContent = `${user.name}（${user.email}）`;
+      renderEventList();
+    }
+
+    function cancelRegister() {
+      document.getElementById('register').classList.add('hidden');
+      document.getElementById('auth').classList.remove('hidden');
+    }
+
+    // --- ログイン ---
+    function login() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) {
+        document.getElementById('authMsg').textContent = 'メールとパスワードを入力してください。';
+        return;
+      }
+      // メール形式チェック
+      if (!isValidEmail(email)) {
+        document.getElementById('authMsg').textContent = '正しいメールアドレス形式で入力してください。';
+        return;
+      }
+      const found = users.find(u => u.email === email);
+      if (!found) {
+        document.getElementById('authMsg').textContent = 'このメールアドレスは登録されていません。';
+        return;
+      }
+      if (found.password !== password) {
+        document.getElementById('authMsg').textContent = 'パスワードが一致しません。';
+        return;
+      }
+      user = { ...found };
+      saveSession();
+      render();
+    }
+
+    // --- ログアウト ---
+    function logout() {
+      localStorage.removeItem("currentUser");
+      location.reload();
+    }
+
+    /** --- サンプルイベントデータ（初回のみ保存） --- */
+    const sampleEvents = [
+      {
+        id: "evt001",
+        name: "春の交流会",
+        datetime: "2026-05-10T13:00:00",
+        applyStart: "2026-04-01T00:00:00",
+        applyEnd:   "2026-05-05T23:59:59",
+        image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=cover&w=200&q=80"
+      },
+      {
+        id: "evt002",
+        name: "夏のBBQ大会",
+        datetime: "2026-07-15T11:00:00",
+        applyStart: "2026-04-01T00:00:00",
+        applyEnd:   "2026-07-10T23:59:59",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=cover&w=200&q=80"
+      },
+      {
+        id: "evt003",
+        name: "秋のハイキング",
+        datetime: "2026-09-25T09:00:00",
+        applyStart: "2026-04-01T00:00:00",
+        applyEnd:   "2026-09-20T23:59:59",
+        image: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=cover&w=200&q=80"
+      }
+    ];
+    if (!localStorage.getItem("events_master")) {
+      localStorage.setItem("events_master", JSON.stringify(sampleEvents));
+    }
+    
+    /** --- データロード/保存 --- */
+    function loadEventsMaster() {
+      return JSON.parse(localStorage.getItem("events_master") || "[]");
+    }
+    function loadUserApplies(email) {
+      return JSON.parse(localStorage.getItem("applies_" + email) || "{}");
+    }
+    function saveUserApplies(email, applies) {
+      localStorage.setItem("applies_" + email, JSON.stringify(applies));
+    }
+
+    /** --- イベント一覧描画 --- */
+    function renderEventList() {
+      const email = JSON.parse(localStorage.getItem("currentUser")).email;
+      const events = loadEventsMaster();
+      const applies = loadUserApplies(email);
+
+      // 申請済イベントを先頭に
+      const appliedEvents = [], otherEvents = [];
+      events.forEach(ev => {
+        if (applies[ev.id]?.applied) appliedEvents.push(ev);
+        else otherEvents.push(ev);
+      });
+      const sorted = [...appliedEvents, ...otherEvents];
+
+      const now = new Date();
+      let html = "";
+      sorted.forEach(ev => {
+        const applyInfo = applies[ev.id] || {};
+        let classes = ["event"];
+        let labels = "";
+        // 申請済み
+        if (applyInfo.applied) {
+          classes.push("applied");
+          labels += `<span class="label">申請済み</span>`;
+          if (applyInfo.edited) labels += `<span class="label edited">編集済み</span>`;
+        }
+        // 申請可能期間外
+        const start = new Date(ev.applyStart), end = new Date(ev.applyEnd);
+        if (now < start || now > end) {
+          classes.push("gray");
+          labels += `<span class="label gray">申請期間外</span>`;
+        }
+        html += `
+          <div class="${classes.join(" ")}" onclick="onEventClick('${ev.id}')">
+            <img src="${ev.image}">
+            <div>
+              <div><b>${ev.name}</b></div>
+              <div><b>開催日時: ${formatDate(ev.datetime)}</b></div>
+              <div>申請期間: ${formatDate(ev.applyStart)} 〜 ${formatDate(ev.applyEnd)}</div>
+            </div>
+            <div class="labels">${labels}</div>
+          </div>
+        `;
+      });
+      document.getElementById("eventList").innerHTML = html;
+    }
+
+    /** --- イベントクリック時 --- */
+    function onEventClick(eventId) {
+      const email = JSON.parse(localStorage.getItem("currentUser")).email;
+      const events = loadEventsMaster();
+      const ev = events.find(e => e.id === eventId);
+      const applies = loadUserApplies(email);
+      const applyInfo = applies[eventId] || {};
+      const now = new Date();
+      const start = new Date(ev.applyStart), end = new Date(ev.applyEnd);
+
+      if (applyInfo.applied) {
+        // 申請済み → 詳細画面
+        showEventDetail(eventId);
+      } else {
+        // 申請可能期間か？
+        if (now < start || now > end) {
+          alert("申請可能期間外です");
+          return;
+        }
+        showApplyForm(eventId);
+      }
+    }
+
+    /** --- 申請フォーム表示 --- */
+    let currentApplyEventId = null;
+    function showApplyForm(eventId, editMode=false) {
+      currentApplyEventId = eventId;
+      document.getElementById("main").style.display = "none";
+      document.getElementById("applyForm").style.display = "block";
+
+      const events = loadEventsMaster();
+      const ev = events.find(e => e.id === eventId);
+      document.getElementById("applyTitle").innerText = ev.name + (editMode ? "（編集）" : " 申請");
+
+      // 既存データ（編集時）
+      const email = JSON.parse(localStorage.getItem("currentUser")).email;
+      const applies = loadUserApplies(email);
+
+      const applyInfo = applies[eventId] || {};
+
+      document.getElementById("applyNum").value = applyInfo.num || 1;
+      document.getElementById("applyNote").value = applyInfo.note || "";
+      updateMemberInputs(applyInfo.members);
+    }
+
+    function closeApplyForm() {
+      document.getElementById("applyForm").style.display = "none";
+      document.getElementById("main").style.display = "block";
+    }
+
+    /** --- 参加者入力欄の生成 --- */
+    function updateMemberInputs(members=[]) {
+      const num = parseInt(document.getElementById("applyNum").value) || 1;
+      let html = "";
+      for (let i = 0; i < num; i++) {
+        html += `
+          <div class="member-row">
+            <span>${i==0 ? "代表者" : "参加者"+(i+1)}</span>
+            <input type="text" placeholder="氏名" id="memberName${i}" value="${members[i]?.name||'太郎'}" required>
+            <input type="number" placeholder="年齢" id="memberAge${i}" value="${members[i]?.age||''}" required>
+            <input type="text" placeholder="備考" id="memberNote${i}" value="${members[i]?.note||''}">
+          </div>
+        `;
+      }
+      document.getElementById("membersArea").innerHTML = html;
+    }
+
+
+    /** --- 申請送信 --- */
+    function submitApply(e) {
+      e.preventDefault();
+      const email = JSON.parse(localStorage.getItem("currentUser")).email;
+      const num = parseInt(document.getElementById("applyNum").value);
+      const note = document.getElementById("applyNote").value;
+      const members = [];
+      for (let i = 0; i < num; i++) {
+        const name = document.getElementById("memberName"+i).value;
+        const age = parseInt(document.getElementById("memberAge"+i).value);
+        const mNote = document.getElementById("memberNote"+i).value;
+        if (!name || isNaN(age)) {
+          alert("氏名と年齢は必須です");
+          return;
+        }
+        members.push({ name, age, note: mNote });
+      }
+      // 保存
+      const applies = loadUserApplies(email);
+      const nowStr = (new Date()).toISOString();
+      let isEdit = applies[currentApplyEventId]?.applied;
+      applies[currentApplyEventId] = {
+        applied: true,
+        edited: isEdit, // 編集モードならtrue
+        applyTime: nowStr,
+        num, members, note
+      };
+      // QRコード情報も保存
+      applies[currentApplyEventId].qr = generateQRData(email, currentApplyEventId, nowStr);
+
+      saveUserApplies(email, applies);
+      closeApplyForm();
+      renderEventList();
+    }
+
+    /** --- イベント詳細＋QR --- */
+    let currentDetailEventId = null;
+    function showEventDetail(eventId) {
+
+      currentDetailEventId = eventId;
+      document.getElementById("main").style.display = "none";
+      document.getElementById("eventDetail").style.display = "block";
+      const email = JSON.parse(localStorage.getItem("currentUser")).email;
+      const events = loadEventsMaster();
+      const ev = events.find(e => e.id === eventId);
+      const applies = loadUserApplies(email);
+      const applyInfo = applies[eventId];
+
+      document.getElementById("detailTitle").innerText = ev.name + " 申請詳細";
+      let info = `
+        <div>開催日時: ${formatDate(ev.datetime)}</div>
+        <div>申請日時: ${formatDate(applyInfo.applyTime)}</div>
+        <div>参加人数: ${applyInfo.num}</div>
+        <div>備考: ${applyInfo.note||""}</div>
+        <div>参加者一覧:
+          <ul>
+            ${applyInfo.members.map(m => `<li>${m.name}（${m.age}歳） ${m.note||""}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+      document.getElementById("detailInfo").innerHTML = info;
+
+      // QRコード生成
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: applyInfo.qr,
+        width: 150, height: 150
+      });
+    }
+
+    /** --- 編集フォームへ --- */
+    function showEditForm() {
+      showApplyForm(currentDetailEventId, true);
+      document.getElementById("eventDetail").style.display = "none";
+    }
+
+    /** --- 申請キャンセル --- */
+    function cancelApply() {
+      if (!confirm("本当にキャンセルしますか？")) return;
+      const email = JSON.parse(localStorage.getItem("currentUser")).email;
+      const applies = loadUserApplies(email);
+      delete applies[currentDetailEventId];
+      saveUserApplies(email, applies);
+      closeDetail();
+      renderEventList();
+    }
+
+    /** --- 詳細画面を閉じる --- */
+    function closeDetail() {
+      document.getElementById("eventDetail").style.display = "none";
+      document.getElementById("auth").style.display = "none";
+      document.getElementById("main").style.display = "block";
+    }
+
+    /** --- QRコード生成 --- */
+    function generateQRData(email, eventId, applyTime) {
+      // 簡単な例：JSONを文字列化
+      return JSON.stringify({ email, eventId, applyTime });
+    }
+
+    /** --- 日付表示補助 --- */
+    function formatDate(dt) {
+      if (!dt) return "";
+      const d = new Date(dt);
+      return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,0)}/${d.getDate().toString().padStart(2,0)} ${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}`;
+    }
+
+    /** --- 初期化 --- */
+    window.onload = function() {
+      if (localStorage.getItem("currentUser")) {
+        loadSession();
+        render();
+      }
+    };
+  </script>
+</body>
+</html>
