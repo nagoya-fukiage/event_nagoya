@@ -1,3 +1,15 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>イベント管理システム(ナゴビュー)</title>
+
+</head>
+<body>
+
+<script>
+
 async function fetchData(url, options) {
   try {
     const response = await fetch(url, options);
@@ -6,27 +18,34 @@ async function fetchData(url, options) {
     console.error("Error:", error);
   }
 }
+  
 // GASのurlにクエリパラメータ（?sheetName=シート名&cell=セル名）を付ける
-const url =
-  "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec?sheetName=test260417&cell=A1";
-const options = {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-  },
-};
-fetchData(url, options);
+// const url =
+//   "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec?sheetName=test260417&cell=A1";
+// const options = {
+//   method: "GET",
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+// };
+// fetchData(url, options);
+  
 // GASのurl
-const url = "https://script.google.com/macros/s/GASのデプロイID/exec";
+const url = "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec";
 const options = {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    sheet: "シート名",
-    cell: "セル名",
-    value: "値",
+    sheet: "test260417",
+    cell: "A1",
+    value: "TEST!",
   }),
 };
 fetchData(url, options);
+
+    </script>
+</body>
+</html>
+
