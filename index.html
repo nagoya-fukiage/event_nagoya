@@ -1,51 +1,12 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>イベント管理システム(ナゴビュー)</title>
-
-</head>
-<body>
-
-<script>
-
-async function fetchData(url, options) {
-  try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-  
-// GASのurlにクエリパラメータ（?sheetName=シート名&cell=セル名）を付ける
-// const url =
-//   "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec?sheetName=test260417&cell=A1";
-// const options = {
-//   method: "GET",
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// };
-// fetchData(url, options);
-  
-// GASのurl
 const url = "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec";
-const options = {
+const data = { name: "田中", email: "test@example.com" };
+
+fetch(url, {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    sheet: "test260417",
-    cell: "A1",
-    value: "TEST!",
-  }),
-};
-fetchData(url, options);
-
-    </script>
-</body>
-</html>
-
+  mode: "no-cors", // 一時的な確認ならこれでも動きますが、レスポンスが取れません
+  body: JSON.stringify(data),
+})
+.then(response => {
+  // mode: "no-cors" だと中身は見られませんが、GAS側での実行はされます
+  console.log("送信完了");
+});
