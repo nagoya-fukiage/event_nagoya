@@ -17,7 +17,7 @@ fetch(url, {
     'Content-Type':'application/json'
   },
   body: JSON.stringify(data),
-  mode:'cros'
+  mode:'cors'
 })
 .then(response => response.json())
 .then(data => {
