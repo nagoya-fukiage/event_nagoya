@@ -16,7 +16,7 @@ fetch(url, {
   // 重要: Content-Typeを text/plain にするとプリフライト(OPTIONS)を回避できます
   headers: {
     'Content-Type': 'text/plain' 
-  }
+  },
   body: JSON.stringify(data),
   mode:'cors'
 })
