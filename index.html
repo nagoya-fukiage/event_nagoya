@@ -13,9 +13,10 @@ const data = { name: "田中", email: "test@example.com" };
 fetch(url, {
   method: "POST",
   <!-- mode: "no-cors", // 一時的な確認ならこれでも動きますが、レスポンスが取れません -->
-  headers:{
-    'Content-Type':'application/json'
-  },
+  // 重要: Content-Typeを text/plain にするとプリフライト(OPTIONS)を回避できます
+  headers: {
+    'Content-Type': 'text/plain' 
+  }
   body: JSON.stringify(data),
   mode:'cors'
 })
