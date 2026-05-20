@@ -12,12 +12,16 @@ const data = { name: "田中", email: "test@example.com" };
 
 fetch(url, {
   method: "POST",
-  mode: "no-cors", // 一時的な確認ならこれでも動きますが、レスポンスが取れません
+  <!-- mode: "no-cors", // 一時的な確認ならこれでも動きますが、レスポンスが取れません -->
+  headers:{
+    'Content-Type':'application/json'
+  },
   body: JSON.stringify(data),
+  mode:'cros'
 })
-.then(response => {
-  // mode: "no-cors" だと中身は見られませんが、GAS側での実行はされます
-  console.log("送信完了");
+.then(response => response.json())
+.then(data => {
+  console.log(data);
 });
 </script>
 </body>
