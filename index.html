@@ -7,22 +7,40 @@
 </head>  
 <body>
   <script>
-const url = "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec";
-const data = { name: "田中", email: "test@example.com" };
+//const url = "https://script.google.com/macros/s/AKfycbyQ0mg8nZlaMJU-VG42Kabg-QV8ihYADgP4hdiuvjXUSZnnVjuiijkhckUpcV-Pz1BrZA/exec";
+// const url = "https://script.google.com/macros/s/AKfycbw65YGAd6_kNR_lNcbLbpsquNGa9JC00VY0IQaDpzLaj4ERweaoYY98NShwtYtvXF2A9w/exec";
+// const data = { name: "田中", email: "test@example.com" };
 
-fetch(url, {
-  method: "POST",
-  // 重要: Content-Typeを text/plain にするとプリフライト(OPTIONS)を回避できます
-  headers: {
-    'Content-Type': 'text/plain' 
-  },
-  body: JSON.stringify(data),
-  mode:'cors'
-})
-.then(response => response.json())
-.then(data => {
-  console.log(data);
-});
+// fetch(url, {
+//   method: "POST",
+//   // 重要: Content-Typeを text/plain にするとプリフライト(OPTIONS)を回避できます
+//   headers: {
+//     'Content-Type': 'text/plain' 
+//   },
+//   body: JSON.stringify(data),
+//   mode:'cors'
+// })
+// .then(response => response.json())
+// .then(data => {
+//   console.log(data);
+// });
+
+const url = "https://script.google.com/macros/s/AKfycbw65YGAd6_kNR_lNcbLbpsquNGa9JC00VY0IQaDpzLaj4ERweaoYY98NShwtYtvXF2A9w/exec";
+
+// fetchの第二引数を省略すると自動的にGETになります
+fetch(url)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('ネットワークエラーが発生しました');
+    }
+    return response.json(); // JSONデータとして解析
+  })
+  .then(data => {
+    console.log(data); // 取得したデータをコンソールに表示
+  })
+  .catch(error => {
+    console.error('エラー:', error);
+  });
 </script>
 </body>
 </html>
