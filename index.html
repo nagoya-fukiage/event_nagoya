@@ -31,28 +31,28 @@
     }
 
     //ログイン
-    fuction fetchLogin()
-    {
-      fetch(GAS_URL,
-            {
-              method:"POST",
-              body:JSON.stringify
-                (
-                {
-                  action:"login",
-                  email:"taro@example.com",
-                  password:"passwprd123"
-                }
-                )
-            }
-           ).then(res => res.json()).then
-        (data => {
-        if(data.success) 
-        {
-          localStorage.setItem("userId",data.userId);
-        }  
-      });
-    }
+    // fuction fetchLogin()
+    // {
+    //   fetch(GAS_URL,
+    //         {
+    //           method:"POST",
+    //           body:JSON.stringify
+    //             (
+    //             {
+    //               action:"login",
+    //               email:"taro@example.com",
+    //               password:"passwprd123"
+    //             }
+    //             )
+    //         }
+    //        ).then(res => res.json()).then
+    //     (data => {
+    //     if(data.success) 
+    //     {
+    //       localStorage.setItem("userId",data.userId);
+    //     }  
+    //   });
+    // }
 
     //UserIdからユーザー情報取得（自動ログイン用）
 
