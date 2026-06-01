@@ -11,22 +11,47 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbw65YGAd6_kNR_lNcbLbpsquNGa9JC00VY0IQaDpzLaj4ERweaoYY98NShwtYtvXF2A9w/exec";
 
     //新規登録
-    fetch(GAS_URL,
-          {
-            method:"POST",
-            body:JSON.stringify
-              (
-              {
-                action:"register",
-                email:"taro@example.com",
-                name:"山田太郎",
-                password:"passwprd123"
-              }
-              )
-          }
-         ).then(res => res.json()).then(console.log);
+    function fetchDoRegister()
+    {  
+      fetch(GAS_URL,
+            {
+              method:"POST",
+              body:JSON.stringify
+                (
+                {
+                  action:"register",
+                  email:"taro@example.com",
+                  name:"山田太郎",
+                  password:"passwprd123"
+                }
+                )
+            }
+           ).then(res => res.json()).then(console.log);
+    }
 
     //ログイン
+    fuction fetchLogin()
+    {
+      fetch(GAS_URL,
+            {
+              method:"POST",
+              body:JSON.stringify
+                (
+                {
+                  action:"login",
+                  email:"taro@example.com",
+                  password:"passwprd123"
+                }
+                )
+            }
+           ).then(res => res.json()).then
+        (data => {
+        if(data.success) 
+        {
+          localStorage.setItem("userId",data.userId);
+        }  
+      });
+    }
 
     //UserIdからユーザー情報取得（自動ログイン用）
 
