@@ -11,7 +11,7 @@
     <h2>ログイン / 新規登録</h2>
     <input id="authEmail" type="email" placeholder="メールアドレス"><br>
     <input id="authPassword" type="password" placeholder="パスワード"><br>
-    <button onclick="showRegister()">新規登録</button>
+    <button onclick="doRegister()">新規登録</button>
     <button onclick="login()">ログイン</button>
     <div id="authMsg"></div>
   </div>
@@ -19,7 +19,7 @@
   <script>
 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbw65YGAd6_kNR_lNcbLbpsquNGa9JC00VY0IQaDpzLaj4ERweaoYY98NShwtYtvXF2A9w/exec";
-    function showRegister()
+    function doRegister()
     {
       fetchDoRegister();
     }
@@ -52,6 +52,8 @@
     //ログイン
     fuction fetchLogin()
     {
+      const address = document.getElementById("authEmail").textContent;
+      const pass = document.getElementById("authPassword").textContent;
       fetch(GAS_URL,
             {
               method:"POST",
@@ -59,8 +61,8 @@
                 (
                 {
                   action:"login",
-                  email:"taro@example.com",
-                  password:"passwprd123"
+                  email:address,
+                  password:pass
                 }
                 )
             }
