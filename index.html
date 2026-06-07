@@ -32,8 +32,8 @@
     //新規登録
     function fetchDoRegister()
     {
-      const address = document.getElementById("authEmail").textContent;
-      const pass = document.getElementById("authPassword").textContent;
+      const address = document.getElementById("authEmail").value;
+      const pass = document.getElementById("authPassword").value;
       fetch(GAS_URL,
             {
               method:"POST",
@@ -52,8 +52,8 @@
     //ログイン
     function fetchLogin()
     {
-      const address = document.getElementById("authEmail").textContent;
-      const pass = document.getElementById("authPassword").textContent;
+      const address = document.getElementById("authEmail").value;
+      const pass = document.getElementById("authPassword").value;
       fetch(GAS_URL,
             {
               method:"POST",
