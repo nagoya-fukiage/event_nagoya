@@ -71,7 +71,11 @@
         if(data.success) 
         {
           localStorage.setItem("userId",data.userId);
-        }  
+        }
+        else
+        {
+          console.log(data.message);
+        }
       });
     }
 
