@@ -1,0 +1,131 @@
+
+const EMAIL_COL = 0;
+const PASSWORD_COL = 1;
+const USERID_COL = 2;
+const KEY_COL = 0;//appliesシート
+const USERINFO_COL = 1;//appliesシート
+
+function doPost(e)
+{
+  const params = JSON.parse(e.postData.contents);
+  switch(params.action)
+  {
+    case "register":
+      return register(params);
+
+    case "login":
+      return login(params);
+
+    case "getUserInfo":
+      return getUserInfo(params);
+
+    case "saveUserApplies":
+      return saveUserApplies(params);
+
+    default:
+      return ContentService.createTextOutput(JSON.stringify({success: false, message:"Invalid"})).setMimeType(ContentService.MimeType.JSON)
+  }
+}
+//▼▼▼▼▼▼▼▼▼新規登録▼▼▼▼▼▼▼▼▼
+function register(params)
+{
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("users");
+  const users = sheet.getDataRange().getValues();
+  
+  if(users.some(row => String(row[EMAIL_COL]) === String(params.email)))//数値または文字列で比較してしまいFALSEになりえるのでStringにキャストする。
+  {
+    return ContentService.createTextOutput(JSON.stringify({success: false, message: "メールアドレスが既に登録されています"}))
+  }
+  const userId = Utilities.getUuid();//重複しないIDを自動で生成してくれる関数
+  sheet.appendRow([params.email, params.password, userId]);
+
+  return ContentService.createTextOutput(JSON.stringify({success: true, userId})).setMimeType(ContentService.MimeType.JSON);
+}
+
+//▼▼▼▼▼▼▼▼▼ログイン▼▼▼▼▼▼▼▼▼
+function login(params)
+{
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("users");
+  const users = sheet.getDataRange().getValues();
+  const user = users.find(row => String(row[EMAIL_COL]) === String(params.email) && String(row[PASSWORD_COL]) === String(params.password));
+
+  if(user)
+  {
+    return ContentService.createTextOutput(JSON.stringify({success: true, userId: user[USERID_COL]})).setMimeType(ContentService.MimeType.JSON);
+  }
+  else
+  {
+    return ContentService.createTextOutput(JSON.stringify({success: false, message: "メールアドレスまたはパスワードが間違っています"}));
+  }
+}
+
+//▼▼▼▼▼▼▼▼▼ユーザー情報取得▼▼▼▼▼▼▼▼▼
+function getUserInfo(params)
+{
+  //受け取ったuserIdが存在するか判定
+  const usersSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("users");
+  const users = usersSheet.getDataRange().getValues();
+  const user = users.find(row => String(row[USERID_COL]) === String(params.userId));
+
+  if(user)
+  {
+    //該当するuserIdのユーザー情報を返す
+    const appliesSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("applies");
+    const apllies = appliesSheet.getDataRange().getValues();
+    const applie = apllies.find(row => String(row[KEY_COL]) === String(params.userId));
+    return ContentService.createTextOutput(JSON.stringify({success: true, userId: user[USERINFO_COL]})).setMimeType(ContentService.MimeType.JSON);
+  }
+  else
+  {
+    return ContentService.createTextOutput(JSON.stringify({success: false, message: "ユーザー情報が存在しません。"}));
+  }
+}
+
+//▼▼▼▼▼▼▼▼▼ユーザー情報保存▼▼▼▼▼▼▼▼▼
+function saveUserApplies(params)
+{
+  //ユーザーIDとappliesを記録
+  const appliesSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("applies");
+  const applies = appliesSheet.getDataRange().getValues();
+
+  // 見つからない場合は -1 が返ります
+  const rowIndex = applies.findIndex(row => String(row[KEY_COL]) === String(params.userId));
+
+  const appliesString = JSON.stringify(params.applies);
+  
+  if (rowIndex !== -1)
+  {
+    // 【存在する場合：上書き】
+    // 配列のインデックスに +1 すると「スプレッドシートの実際の行番号」になります
+    const targetRow = rowIndex + 1;
+    
+    // 上書きするデータを作成（userId,applies）
+    const updateData = [params.userId, appliesString];
+    
+    // 指定した行の範囲（1行分）を取得して、一括で上書きします
+    appliesSheet.getRange(targetRow, 1, 1, updateData.length).setValues([updateData]);
+    return ContentService.createTextOutput(JSON.stringify({success: true, message: "上書きしました。"})).setMimeType(ContentService.MimeType.JSON);
+  }
+  else
+  {
+    // 【存在しない場合：末尾に追加】
+    appliesSheet.appendRow([params.userId, appliesString]);
+    return ContentService.createTextOutput(JSON.stringify({success: true, message: "新規登録しました。"})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+//▼▼▼▼▼▼▼▼▼METHOD:GET▼▼▼▼▼▼▼▼▼
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("シート1");
+
+  // 2. シート全体の最終行の番号を取得
+  const lastRow = sheet.getLastRow();
+
+  // 3. A列の最終行のセルから値を取得
+  const data = sheet.getRange(lastRow, 1).getValue();
+  
+  // 重要：JSON形式で出力し、MimeTypeを指定する
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
