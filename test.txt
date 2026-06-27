@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>イベント管理システム(ナゴビュー)</title>
+</head>  
+<body>
+  <!-- ログイン/新規登録画面 -->
+  <div id="auth">
+    <h2>ログイン / 新規登録</h2>
+    <input id="authEmail" type="email" placeholder="メールアドレス"><br>
+    <input id="authPassword" type="password" placeholder="パスワード"><br>
+    <button onclick="doRegister()">新規登録</button>
+    <button onclick="login()">ログイン</button>
+    <button onclick="autoLogin()">自動ログイン</button>
+    <div id="authMsg"></div>
+  </div>
+
+  <div id="applyFormElem">
+    <div>
+      参加人数:
+      <input type="number" id="applyNum" min="1" max="10" value="1" required onchange="updateMemberInputs()">
+    </div>
+    <div id="membersArea"></div>
+    <div>
+      備考:
+      <input type="text" id="applyNote">
+    </div>
+    <button onclick="submitApply()">申請</button>
+    <!-- <button type="button" onclick="closeApplyForm()">キャンセル</button> -->
+  </div>
+  
+  <script>
+
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw65YGAd6_kNR_lNcbLbpsquNGa9JC00VY0IQaDpzLaj4ERweaoYY98NShwtYtvXF2A9w/exec";
+    function doRegister()
+    {
+      fetchDoRegister();
+    }
+
+    function login()
+    {
+      fetchLogin();
+    }
+
+    function autoLogin()
+    {
+      //localStorageにuserIdがあれば自動ログイン
+      if(localStorage.getItem("userId"))
+      {
+        //userIdからユーザー情報を取得して自動ログイン
+        fetchUserInfo();
+        
+        //userIdが無効な場合はlocalStorageから削除してログイン画面に戻す
+        
+      }
+    }
+
+    /** --- 申請送信 --- */
+    function submitApply() 
+    {
+      const num = parseInt(document.getElementById("applyNum").value);
+      const note = document.getElementById("applyNote").value;
+      const members = [];
+      for (let i = 0; i < num; i++) {
+        const name = document.getElementById("memberName"+i).value;
+        const age = parseInt(document.getElementById("memberAge"+i).value);
+        const mNote = document.getElementById("memberNote"+i).value;
+        if (!name || isNaN(age)) {
+          alert("氏名と年齢は必須です");
+          return;
+        }
+        members.push({ name, age, note: mNote });
+      }
+      // 保存
+      // const applies = loadUserApplies(email);
+      const applies = [];
+      const nowStr = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+      // 出力例: 2026-06-08T17:02:54.123+09:00
+      // let isEdit = applies[currentApplyEventId]?.applied;
+      let isEdit = false;
+      applies[0] = 
+      {
+        applied: true,
+        edited: isEdit, // 編集モードならtrue
+        applyTime: nowStr,
+        num, members, note
+      };
+      // QRコード情報も保存
+      // applies[0].qr = generateQRData(email, 0, nowStr);
+
+      fetchSaveUserApplies(applies);
+      // closeApplyForm();
+      // renderEventList();
+    }
+    
+    //新規登録
+    function fetchDoRegister()
+    {
+      const address = document.getElementById("authEmail").value;
+      const pass = document.getElementById("authPassword").value;
+      fetch(GAS_URL,
+            {
+              method:"POST",
+              body:JSON.stringify
+                (
+                {
+                  action:"register",
+                  email:address,
+                  password:pass
+                }
+                )
+            }
+           ).then(res => res.json()).then(console.log);
+    }
+
+    //ログイン
+    function fetchLogin()
+    {
+      const address = document.getElementById("authEmail").value;
+      const pass = document.getElementById("authPassword").value;
+      fetch(GAS_URL,
+            {
+              method:"POST",
+              body:JSON.stringify
+                (
+                {
+                  action:"login",
+                  email:address,
+                  password:pass
+                }
+                )
+            }
+           ).then(res => res.json()).then
+        (data => {
+        if(data.success) 
+        {
+          localStorage.setItem("userId",data.userId);
+          console.log(data.userId);
+        }
+        else
+        {
+          console.log(data.message);
+        }
+      });
+    }
+
+    //UserIdからユーザー情報取得（自動ログイン用）
+    function fetchUserInfo()
+    {
+      const userId = localStorage.getItem("userId");
+      fetch(GAS_URL,
+            {
+              method:"POST",
+              body:JSON.stringify
+                (
+                {
+                  action:"getUserInfo",
+                  userId:userId
+                }
+                )
+            }
+           ).then(res => res.json()).then
+        (data => {
+          console.log(data);
+        });
+    }
+
+    //申請・編集・キャンセル
+    //申請
+    function fetchSaveUserApplies(applies) 
+    {
+      const userId = localStorage.getItem("userId");
+      fetch(GAS_URL,
+            {
+              method:"POST",
+              body:JSON.stringify
+                (
+                {
+                  action:"saveUserApplies",
+                  userId:userId,
+                  applies:applies
+                }
+                )
+            }
+           ).then(res => res.json()).then
+        (data => {
+          console.log(data);
+        });
+    }
+
+    /** --- 参加者入力欄の生成 --- */
+    function updateMemberInputs(members=[]) 
+    {
+      const num = parseInt(document.getElementById("applyNum").value) || 1;
+      let html = "";
+      for (let i = 0; i < num; i++) {
+        html += `
+          <div class="member-row">
+            <span>${i==0 ? "代表者" : "参加者"+(i+1)}</span>
+            <input type="text" placeholder="氏名" id="memberName${i}" value="${members[i]?.name||'太郎'}" required>
+            <input type="number" placeholder="年齢" id="memberAge${i}" value="${members[i]?.age||''}" required>
+            <input type="text" placeholder="備考" id="memberNote${i}" value="${members[i]?.note||''}">
+          </div>
+        `;
+      }
+      document.getElementById("membersArea").innerHTML = html;
+    }
+    
+// fetchの第二引数を省略すると自動的にGETになります
+// fetch(url)
+//   .then(response => {
+//     if (!response.ok) {
+//       throw new Error('ネットワークエラーが発生しました');
+//     }
+//     return response.json(); // JSONデータとして解析
+//   })
+//   .then(data => {
+//     console.log(data); // 取得したデータをコンソールに表示
+//   })
+//   .catch(error => {
+//     console.error('エラー:', error);
+//   });
+</script>
+</body>
+</html>
