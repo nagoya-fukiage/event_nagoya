@@ -4,8 +4,244 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>イベント管理システム(ナゴビュー)</title>
-</head>  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #ccb158 0%, #c47e30 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .hidden { display: none; }
+    
+    /* 共通コンテナ */
+    #auth, #main, #applyForm, #eventDetail { 
+      max-width: 95%; 
+      margin: 40px auto; 
+      background: #fff; 
+      padding: 40px; 
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+    
+    h2 { 
+      margin-bottom: 25px; 
+      color: #000105;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    
+    /* 入力フィールド */
+    input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    /* ボタン */
+    button {
+      padding: 12px 24px;
+      margin: 8px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ccb158 0%, #c47e30 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    /* イベントリスト */
+    .event { 
+      display: flex; 
+      align-items: center; 
+      margin-bottom: 15px; 
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #f8f9ff;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .event:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .event img { 
+      width: 70px; 
+      height: 70px; 
+      object-fit: cover; 
+      border-radius: 8px; 
+      margin-right: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .event.applied { 
+      background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+      border: 2px solid #29b6f6;
+    }
+    
+    .event.gray { 
+      background: #f5f5f5; 
+      color: #aaa; 
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .event .labels { 
+      margin-left: auto; 
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .label { 
+      display: inline-block; 
+      background: #667eea;
+      color: #fff; 
+      border-radius: 20px; 
+      padding: 6px 12px; 
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .label.edited { background: #ffa726; }
+    .label.gray { background: #bbb; }
+    
+    /* メッセージ */
+    #authMsg, #regMsg {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #ffebee;
+      color: #c62828;
+      font-size: 13px;
+      display: none;
+    }
+    
+    #authMsg:not(:empty), #regMsg:not(:empty) {
+      display: block;
+    }
+    
+    /* ユーザー情報 */
+    #userEmail {
+      display: block;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    /* フォーム */
+    
+    .member-row { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    
+    .member-row span {
+      min-width: 70px;
+      font-weight: 600;
+      color: #667eea;
+      font-size: 13px;
+    }
+    
+    .member-row input { 
+      flex: 1;
+      min-width: 80px;
+    }
+    
+    /* QR コード */
+    #qrcode { 
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 10px;
+    }
+    
+    /* ユーザー情報ヘッダー */
+    #main > div:first-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    #loadingOverlay {
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); /* 薄暗く */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: all;
+    }
+
+    .loadingBox {
+      background: #fff;
+      color: #333;
+      padding: 2em 3em;
+      border-radius: 1em;
+      font-size: 1.2em;
+      box-shadow: 0 0 10px #3335;
+    }
+
+    .member-gender {
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 4px 8px;
+    }
+
+    .member-age {
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+
 <body>
+  <!-- 通信中オーバーレイ -->
+  <div id="loadingOverlay" style="display:none;">
+    <div class="loadingBox">
+      通信中...
+    </div>
+  </div>
+
   <!-- ログイン/新規登録画面 -->
   <div id="auth">
     <h2>ログイン / 新規登録</h2>
@@ -15,90 +251,761 @@
     <button onclick="login()">ログイン</button>
     <div id="authMsg"></div>
   </div>
-  
+
+  <div id="main">
+    <div>
+      <span id="userEmail"></span>
+      <button onclick="logout()">ログアウト</button>
+    </div>
+
+    <h2>イベント一覧</h2>
+    <div id="eventList"></div>
+  </div>
+
+  <!-- 申請フォーム -->
+  <div id="applyForm">
+    <h2 id="applyTitle"></h2>
+    <form id="applyFormElem" onsubmit="submitApply(event)">
+      <div>
+        参加人数:
+        <input type="number" id="applyNum" min="1" max="10" value="1" required onchange="updateMemberInputs()">
+      </div>
+      <div id="membersArea"></div>
+      <div>
+        備考:
+        <input type="text" id="applyNote">
+      </div>
+      <div>
+        参加費の合計: <span id="totalFee">0</span>円<br>
+        大人: <span id="adultFee">1000</span>円, 中学生以下: <span id="childFee">500</span>円<br>
+        お支払先PayPayURL: <a href="https://paypay.ne.jp/" target="_blank">https://paypay.ne.jp/</a><br>
+        ※お名前と参加人数をPayPayのメッセージ欄にご記入ください。<br>
+        ※当日現金支払いも可能です。
+      </div>
+      <button type="submit">申請</button>
+      <button type="button" onclick="closeApplyForm()">キャンセル</button>
+    </form>
+  </div>
+
+  <!-- イベント詳細＋QRコード -->
+  <div id="eventDetail">
+    <h2 id="detailTitle"></h2>
+    <div id="detailInfo"></div>
+    <div id="qrcode"></div>
+    <button id="editBtn" onclick="showEditForm()">編集</button>
+    <button id="cancelBtn" onclick="cancelApply()">申請取り消し</button>
+    <button onclick="closeDetail()">閉じる</button>
+  </div>
+
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <script>
-
     const GAS_URL = "https://script.google.com/macros/s/AKfycbw65YGAd6_kNR_lNcbLbpsquNGa9JC00VY0IQaDpzLaj4ERweaoYY98NShwtYtvXF2A9w/exec";
-    function doRegister()
-    {
-      fetchDoRegister();
-    }
 
-    function login()
+    const AUTH_SCREEN = 0;
+    const MAIN_SCREEN = 1;
+    const APPLY_SCREEN = 2;
+    const DETAIL_SCREEN = 3;
+
+    let user = null; // {userId}
+    let userEventInfo = null; //任意のユーザーのイベント情報
+
+    /** --- サンプルイベントデータ（初回のみ保存） --- */
+    const sampleEvents = 
+    [
+      {
+        id: "evt001",
+        name: "2026年ナツフェス",
+        datetime: "2026-08-29T13:00:00",
+        applyStart: "2026-06-21T00:00:00",
+        applyEnd:   "2026-08-10T23:59:59",
+        image: "https://images.unsplash.com/photo-1593558628703-535b2556320b?auto=format&fit=cover&w=200&q=80"
+      },
+      // {
+      //   id: "evt002",
+      //   name: "夏のBBQ大会",
+      //   datetime: "2026-07-15T11:00:00",
+      //   applyStart: "2026-04-01T00:00:00",
+      //   applyEnd:   "2026-07-10T23:59:59",
+      //   image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=cover&w=200&q=80"
+      // },
+      // {
+      //   id: "evt003",
+      //   name: "秋のハイキング",
+      //   datetime: "2026-09-25T09:00:00",
+      //   applyStart: "2026-04-01T00:00:00",
+      //   applyEnd:   "2026-09-20T23:59:59",
+      //   image: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=cover&w=200&q=80"
+      // }
+    ];
+
+    let eventsMaster = sampleEvents; // イベント一覧
+    let selectedEventId = null;// 選択中のイベントID
+  
+    /** --- 起動時に自動ログイン判定を実施 --- */
+    window.onload = function() 
     {
-      fetchLogin();
-    }
+      const userId = localStorage.getItem("userId");
+
+      // 初期状態はログイン画面
+      render(AUTH_SCREEN);
+
+      //ローカルストレージにuserIdがあれば、サーバーからユーザー情報を取得してログイン状態を復元
+      if (userId) 
+      {
+        console.log("自動ログイン判定: userId=", userId);
+        fetchGetUserInfo(userId).then(nextScreen => {
+          render(nextScreen);
+        }); 
+      }
+      
+	  };
+
+    /** --- 任意のユーザーIDからユーザー情報取得(ただし、新規登録時などIDは存在するが情報が取得できない場合もある) --- */
+    function fetchGetUserInfo(userId) 
+    {
+      // カーソルを「待機中」に
+      document.body.style.cursor = "wait";
+      showLoading();
     
-    //新規登録
-    function fetchDoRegister()
-    {
-      const address = document.getElementById("authEmail").value;
-      const pass = document.getElementById("authPassword").value;
-      fetch(GAS_URL,
-            {
-              method:"POST",
-              body:JSON.stringify
-                (
-                {
-                  action:"register",
-                  email:address,
-                  password:pass
-                }
-                )
-            }
-           ).then(res => res.json()).then(console.log);
-    }
-
-    //ログイン
-    function fetchLogin()
-    {
-      const address = document.getElementById("authEmail").value;
-      const pass = document.getElementById("authPassword").value;
-      fetch(GAS_URL,
-            {
-              method:"POST",
-              body:JSON.stringify
-                (
-                {
-                  action:"login",
-                  email:address,
-                  password:pass
-                }
-                )
-            }
-           ).then(res => res.json()).then
-        (data => {
+      return fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "getUserInfo",
+          userId: userId
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
         if(data.success) 
         {
-          localStorage.setItem("userId",data.userId);
-        }
-        else
+          user = { ...data.userId }; // サーバーから得たユーザーid
+          userEventInfo = { ...data.userEventInfo }; // サーバーから得たユーザーが登録したイベント情報
+          console.log("ユーザー情報取得成功:", user, userEventInfo);
+          return MAIN_SCREEN;
+        } 
+        else 
         {
-          console.log(data.message);
+          //新規登録時、またはログイン済みだがイベント未登録時はここを通過する
+          user = null;
+          userEventInfo = null;
+          return MAIN_SCREEN;
         }
+      })
+      .catch(e => {
+        localStorage.removeItem("userId");
+        user = null;
+        userEventInfo = null;
+        return AUTH_SCREEN;
+      })
+      .finally(() => {
+      // 必ずカーソルを元に戻す
+      document.body.style.cursor = "";
+      hideLoading();
+    });
+    }
+
+    function showLoading() 
+    {
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      document.body.style.cursor = 'wait';
+    }
+    function hideLoading() 
+    {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.body.style.cursor = '';
+    }
+
+
+    function clearSession() 
+    {
+      localStorage.removeItem('currentUser');
+      user = null;
+      userEventInfo= null;
+    }
+
+    // --- 画面描画 ---
+    function render(screen) 
+    {
+      // すべての画面を非表示に
+      document.getElementById('auth').classList.add('hidden');
+      document.getElementById('main').classList.add('hidden');
+      document.getElementById('applyForm').classList.add('hidden');
+      document.getElementById('eventDetail').classList.add('hidden');
+
+      if(screen == AUTH_SCREEN) 
+      { 
+        // ログイン画面表示
+        document.getElementById('auth').classList.remove('hidden');
+        document.getElementById('authMsg').textContent = '';
+        document.getElementById('authEmail').value = '';
+        document.getElementById('authPassword').value = '';
+        document.getElementById('userEmail').textContent = '';
+        document.getElementById("eventList").innerHTML = '';
+
+      } 
+      else if(screen == MAIN_SCREEN)
+      {
+        // メイン画面表示
+        document.getElementById('main').classList.remove('hidden');
+        document.getElementById('eventList').classList.remove('hidden');
+
+        if(!document.getElementById('authEmail').value)
+        {
+          document.getElementById('userEmail').textContent = document.getElementById('authEmail').value.trim();
+        }
+        //宿題　GASからemailを取得して表示するようにする
+        
+        renderEventList();
+      }
+      else if(screen == APPLY_SCREEN)
+      {
+        document.getElementById('applyForm').classList.remove('hidden');
+      }
+      else if(screen == DETAIL_SCREEN)
+      {
+        document.getElementById('eventDetail').classList.remove('hidden');
+      }
+    }
+
+    // --- メールアドレス形式チェック ---
+    function isValidEmail(email) 
+    {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    /** --- 新規ユーザー登録実行 --- */
+    function doRegister() 
+    {
+      const email = document.getElementById('authEmail').value.trim();//trim()は「文字列の前後の空白を除去する」メソッドです
+      const password = document.getElementById('authPassword').value;
+      
+      if (!email || !password) 
+      {
+        document.getElementById('authMsg').textContent = 'メールアドレスとパスワードを入力してください。';
+        return;
+      }
+
+      // メール形式チェック
+      if (!isValidEmail(email)) 
+      {
+        document.getElementById('authMsg').textContent = '正しいメールアドレス形式で入力してください。';
+        return;
+      }
+
+      // カーソルを「待機中」に
+      document.body.style.cursor = "wait";
+      showLoading();
+
+      fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "register",
+          email: email,
+          password: password,
+        })
+	  })
+	  .then(res => res.json())
+	  .then(data => 
+    {
+	    if(data.success) 
+      {
+	      localStorage.setItem("userId", data.userId);
+	      fetchGetUserInfo(data.userId).then(nextScreen => {
+          render(nextScreen);
+        });
+	      document.getElementById('auth').classList.add('hidden');
+        confirm("登録成功！ログインしました。");
+	    } 
+      else 
+      {
+	      document.getElementById('authMsg').textContent = data.message || "登録失敗";
+	    }
+	  })
+	  .catch(e => 
+    {
+	    document.getElementById('authMsg').textContent = "通信エラー";
+	  })
+    .finally(() => {
+      // 必ずカーソルを元に戻す
+      document.body.style.cursor = "";
+      hideLoading();
+    });
+  	}
+
+    // --- ログイン ---
+    function login() 
+    {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      if (!email || !password) 
+      {
+        document.getElementById('authMsg').textContent = 'メールアドレスとパスワードを入力してください。';
+        return;
+      }
+      if (!isValidEmail(email)) 
+      {
+        document.getElementById('authMsg').textContent = '正しいメールアドレス形式で入力してください。';
+        return;
+	    }
+
+      // カーソルを「待機中」に
+      document.body.style.cursor = "wait";
+      showLoading();
+
+      fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "login",
+          email: email,
+          password: password
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) 
+        {
+          localStorage.setItem("userId", data.userId); // userId保存
+          fetchGetUserInfo(data.userId).then(nextScreen => {
+            render(nextScreen);
+          });
+        } 
+        else 
+        {
+          document.getElementById('authMsg').textContent = data.message || "ログイン失敗";
+        }
+      })
+      .catch(e => 
+      {
+        document.getElementById('authMsg').textContent = "通信エラー";
+      })
+      .finally(() => {
+        // 必ずカーソルを元に戻す
+        document.body.style.cursor = "";
+        hideLoading();
+      });
+	  }
+
+    // --- ログアウト ---
+    function logout() 
+    {
+      localStorage.removeItem("userId");
+      user = null;
+      render(AUTH_SCREEN);
+	  }
+    
+    /** --- データロード/保存 --- */
+    function loadEventsMaster() 
+    {
+      return eventsMaster || "[]";
+    }
+
+    /** --- ユーザー申請データ読み出し --- */
+    function loadUserEventInfo() 
+    {
+      // 取得時にオブジェクト化
+      if (typeof userEventInfo === "string") 
+      {
+        try 
+        {
+          return JSON.parse(userEventInfo);
+        } catch(e) 
+        {
+          return {};
+        }
+      }
+      return userEventInfo || {};
+    }
+
+    
+    /** --- イベント一覧描画 --- */
+    function renderEventList() 
+    {
+      const events = loadEventsMaster();// イベントマスタ。イベントID、イベント名、開催日時、申請期間、画像URLなどを含む。管理者が設定する。
+      const eventInfo = loadUserEventInfo();// ユーザーが申請したイベント情報。イベントIDをキーに、申請済みか、編集済みか、申請日時、参加人数、参加者情報などを含む。
+
+      // 申請済イベントを先頭に
+      const appliedEvents = [], otherEvents = [];
+      events.forEach(ev => {
+        if (eventInfo[ev.id]?.applied) appliedEvents.push(ev);
+        else otherEvents.push(ev);
+      });
+      const sorted = [...appliedEvents, ...otherEvents];
+
+      const now = new Date();
+      let html = "";
+      sorted.forEach(ev => {
+        const applyInfo = eventInfo[ev.id] || {};
+        let classes = ["event"];
+        let labels = "";
+        // 申請済み
+        if (applyInfo.applied) 
+        {
+          classes.push("applied");
+          labels += `<span class="label">申請済み</span>`;
+          if (applyInfo.edited) labels += `<span class="label edited">編集済み</span>`;//編集済みアイコンを出したかったが、判定が難しいので保留
+        }
+
+        // 申請可能期間外
+        const start = new Date(ev.applyStart), end = new Date(ev.applyEnd);
+        if (now < start || now > end) 
+        {
+          classes.push("gray");
+          labels += `<span class="label gray">申請期間外</span>`;
+        }
+        html += `
+          <div class="${classes.join(" ")}" onclick="onEventClick('${ev.id}')">
+            <img src="${ev.image}">
+            <div>
+              <div><b>${ev.name}</b></div>
+              <div><b>開催日時: ${formatDate(ev.datetime)}</b></div>
+              <div style="display: none;">申請期間: ${formatDate(ev.applyStart)} ? ${formatDate(ev.applyEnd)}</div>
+            </div>
+            <div class="labels">${labels}</div>
+          </div>
+        `;
+      });
+      document.getElementById("eventList").innerHTML = html;
+    }
+
+    /** --- イベント一覧に記載のイベントをクリック時のコールバック関数 --- */
+    function onEventClick(eventId) 
+    {
+      const email = document.getElementById('authEmail').value.trim();
+      const events = loadEventsMaster();
+      const ev = events.find(e => e.id === eventId);
+      const eventInfo = loadUserEventInfo();
+      const applyInfo = eventInfo[eventId] || {};
+      const now = new Date();
+      const start = new Date(ev.applyStart), end = new Date(ev.applyEnd);
+
+      if (applyInfo.applied) 
+      {
+        // 申請済み → 詳細画面
+        showEventDetail(eventId);
+        render(DETAIL_SCREEN);
+      } 
+      else 
+      {
+        // 申請可能期間か？
+        if (now < start || now > end) 
+        {
+          alert("申請可能期間外です");
+          return;
+        }
+        showApplyForm(eventId);
+        render(APPLY_SCREEN);
+      }
+    }
+
+    /** --- 申請フォーム表示 --- */
+    function showApplyForm(eventId, editMode=false) 
+    {
+      selectedEventId = eventId;
+
+      const events = loadEventsMaster();
+      const ev = events.find(e => e.id === eventId);
+      document.getElementById("applyTitle").innerText = ev.name + (editMode ? "（編集）" : " 申請");
+
+      // 既存データ（編集時）
+      const email = document.getElementById('authEmail').value.trim();
+      const eventInfo = loadUserEventInfo();
+
+      const applyInfo = eventInfo[eventId] || {};
+
+      document.getElementById("applyNum").value = applyInfo.num || 1;
+      document.getElementById("applyNote").value = applyInfo.note || "";
+      updateMemberInputs(applyInfo.members);
+    }
+
+    function closeApplyForm() 
+    {
+      const userId = localStorage.getItem("userId");
+      fetchGetUserInfo(userId).then(nextScreen => {
+          render(nextScreen);
+        }); 
+    }
+
+    /** --- 参加者入力欄の生成 --- */
+    function updateMemberInputs(members = []) 
+    {
+      const num = parseInt(document.getElementById("applyNum").value) || 1;
+
+      // いま画面にある値を一時保存
+      let currentMembers = [];
+      for (let i = 0; i < 20; i++) {
+        const nameEl = document.getElementById("memberName" + i);
+        const ageEl = document.getElementById("memberAge" + i);
+        const genderEl = document.getElementById("memberGender" + i);
+        const noteEl = document.getElementById("memberNote" + i);
+        if (!nameEl && !ageEl && !genderEl && !noteEl) break;
+        currentMembers.push({
+          name: nameEl ? nameEl.value : "",
+          age: ageEl ? ageEl.value : "",
+          gender: genderEl ? genderEl.value : "",
+          note: noteEl ? noteEl.value : ""
+        });
+      }
+
+      // members引数よりもcurrentMembersを優先
+      let mergedMembers = [];
+      for (let i = 0; i < num; i++) {
+        mergedMembers[i] = {
+          name: currentMembers[i]?.name ?? members[i]?.name ?? "",
+          age: currentMembers[i]?.age ?? members[i]?.age ?? "",
+          gender: currentMembers[i]?.gender ?? members[i]?.gender ?? "",
+          note: currentMembers[i]?.note ?? members[i]?.note ?? ""
+        };
+      }
+
+      // 入力欄を描画
+      let html = "";
+      for (let i = 0; i < num; i++) {
+        html += `
+          <div class="member-row">
+            <span>${i == 0 ? "代表者" : "参加者" + (i + 1)}</span>
+            <input type="text" placeholder="氏名" id="memberName${i}" value="${mergedMembers[i].name}" required>
+            <select class="member-age" id="memberAge${i}" required onchange="calcTotalFee()">
+              <option value="">年齢区分</option>
+              <option value="adult" ${mergedMembers[i].age === "adult" ? "selected" : ""}>大人</option>
+              <option value="junior" ${mergedMembers[i].age === "junior" ? "selected" : ""}>中学生以下</option>
+            </select>
+            <select class="member-gender" id="memberGender${i}" required>
+              <option value="">性別</option>
+              <option value="male" ${mergedMembers[i].gender === "male" ? "selected" : ""}>男性</option>
+              <option value="female" ${mergedMembers[i].gender === "female" ? "selected" : ""}>女性</option>
+              <option value="other" ${mergedMembers[i].gender === "other" ? "selected" : ""}>その他</option>
+              <option value="noanswer" ${mergedMembers[i].gender === "noanswer" ? "selected" : ""}>無回答</option>
+            </select>
+            <input type="text" placeholder="備考" id="memberNote${i}" value="${mergedMembers[i].note}">
+          </div>
+        `;
+      }
+      document.getElementById("membersArea").innerHTML = html;
+      calcTotalFee();
+    }
+
+    function submitApply(e) 
+    {
+      e.preventDefault();
+      const userId = localStorage.getItem("userId");
+      if (!userId) 
+      {
+        alert("再度ログインしてください");
+        logout();
+        return;
+      }
+
+      const eventId = selectedEventId;
+      const num = parseInt(document.getElementById("applyNum").value);
+      const note = document.getElementById("applyNote").value;
+      const members = [];
+      for (let i = 0; i < num; i++) 
+      {
+        const name = document.getElementById("memberName"+i).value;
+        const age = document.getElementById("memberAge"+i).value;
+        const gender = document.getElementById("memberGender"+i).value;
+        const mNote = document.getElementById("memberNote"+i).value;
+        if (!name || !age || !gender) 
+        {
+          alert("氏名・年齢区分・性別は必須です");
+          return;
+        }
+        members.push({ name, age, gender, note: mNote });
+      }
+      const nowStr = (new Date()).toISOString();
+
+      let eventInfo = {};
+      eventInfo[eventId] = {
+        applied: true,
+        edited: false,
+        applyTime: nowStr,
+        num, members, note
+      };
+
+      document.body.style.cursor = "wait";
+      showLoading();
+
+      fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "saveUserEventInfo",
+          userId: userId,
+          EventInfo: eventInfo
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) 
+        {
+          closeApplyForm();
+          alert(data.message);
+        } 
+        else 
+        {
+          alert(data.message || "申請失敗");
+        }
+      })
+      .catch(e => 
+      {
+        alert("通信エラー");
+      })
+      .finally(() => {
+        document.body.style.cursor = "";
+        hideLoading();
       });
     }
 
-    //UserIdからユーザー情報取得（自動ログイン用）
+    function showEventDetail(eventId) 
+    {
+      selectedEventId = eventId;
 
-    //申請・編集・キャンセル
+      const email = document.getElementById('authEmail').value.trim();
+      const events = loadEventsMaster();
+      const ev = events.find(e => e.id === eventId);
+      const eventInfo = loadUserEventInfo();
+      const applyInfo = eventInfo[eventId];
 
-    
-// fetchの第二引数を省略すると自動的にGETになります
-// fetch(url)
-//   .then(response => {
-//     if (!response.ok) {
-//       throw new Error('ネットワークエラーが発生しました');
-//     }
-//     return response.json(); // JSONデータとして解析
-//   })
-//   .then(data => {
-//     console.log(data); // 取得したデータをコンソールに表示
-//   })
-//   .catch(error => {
-//     console.error('エラー:', error);
-//   });
-</script>
+      document.getElementById("detailTitle").innerText = ev.name + " 申請詳細";
+      let info = `
+        <div>開催日時: ${formatDate(ev.datetime)}</div>
+        <div>申請日時: ${formatDate(applyInfo.applyTime)}</div>
+        <div>参加人数: ${applyInfo.num}</div>
+        <div>備考: ${applyInfo.note||""}</div>
+        <div>参加者一覧:
+          <ul>
+            ${applyInfo.members.map(m => 
+              `<li>
+                ${m.name}（${m.age === "adult" ? "大人" : "中学生以下"}・${genderLabel(m.gender)}）${m.note ? " " + m.note : ""}
+              </li>`
+            ).join("")}
+          </ul>
+        </div>
+      `;
+      document.getElementById("detailInfo").innerHTML = info;
+
+      // QRコード生成
+      const userId = localStorage.getItem("userId");
+      const qrData = {
+        eventId: selectedEventId,
+        userId: userId,
+        applyNum: applyInfo.num,
+        // note: applyInfo.note ? applyInfo.note.substring(0, 30) : "",
+        // members: applyInfo.members // QRコードには含めない
+      };
+      console.log(JSON.stringify(qrData));
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: JSON.stringify(qrData),
+        width: 300, height: 300
+      });
+    }
+
+    // 性別ラベル変換用関数
+    function genderLabel(gender) {
+      switch (gender) {
+        case "male": return "男性";
+        case "female": return "女性";
+        case "other": return "その他";
+        case "noanswer": return "無回答";
+        default: return "";
+      }
+    }
+
+
+    /** --- 編集フォームへ --- */
+    function showEditForm() 
+    {
+      showApplyForm(selectedEventId, true);
+      render(APPLY_SCREEN);
+    }
+
+    /** --- 申請取り消し --- */
+    function cancelApply() 
+    {
+      if (!confirm("本当に取り消しますか？参加される場合は再度申請してください。")) return;
+
+      const userId = localStorage.getItem("userId");
+      let eventInfo = loadUserEventInfo();
+
+      // イベント情報を削除
+      delete eventInfo[selectedEventId];
+
+      document.body.style.cursor = "wait";
+      showLoading();
+
+      fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "saveUserEventInfo",
+          userId: userId,
+          EventInfo: eventInfo
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message || "取り消しました");
+        closeDetail();
+        renderEventList();
+      })
+      .catch(e => {
+        alert("通信エラー");
+      })
+      .finally(() => {
+        document.body.style.cursor = "";
+        hideLoading();
+      });
+    }
+
+    /** --- 詳細画面を閉じる --- */
+    function closeDetail() 
+    {
+      selectedEventId = null;
+      render(MAIN_SCREEN);
+    }
+
+    /** --- 日付表示補助 --- */
+    function formatDate(dt) 
+    {
+      if (!dt) return "";
+      const d = new Date(dt);
+      return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,0)}/${d.getDate().toString().padStart(2,0)} ${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}`;
+    }
+
+    function calcTotalFee() 
+    {
+      const ADULT_FEE = 1000;
+      const CHILD_FEE = 500;
+      let total = 0;
+      let numAdults = 0;
+      let numChildren = 0;
+
+      const num = parseInt(document.getElementById('applyNum').value, 10) || 1;
+
+      for (let i = 0; i < num; i++) {
+        const ageInput = document.getElementById("memberAge" + i);
+        if (!ageInput) continue;
+        const age = ageInput.value;
+        if (age === "adult") {
+          total += ADULT_FEE;
+          numAdults++;
+        } else if (age === "junior") {
+          total += CHILD_FEE;
+          numChildren++;
+        } // 空欄や未選択はカウントしない
+      }
+
+      document.getElementById('totalFee').textContent = total;
+      // 必要なら内訳も出せます
+      // document.getElementById('adultCount').textContent = numAdults;
+      // document.getElementById('childCount').textContent = numChildren;
+    }
+
+
+
+  </script>
 </body>
 </html>
-
