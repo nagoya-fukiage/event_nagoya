@@ -163,21 +163,31 @@
     
     .member-row { 
       display: flex; 
-      gap: 10px; 
-      margin-bottom: 12px;
+      gap: 12px; 
+      margin-bottom: 15px;
       align-items: center;
+      width: 100%; /* 親コンテナの横幅いっぱいに広げる */
+      background: #f8f9ff; /* 行全体に薄い背景色をつける（お好みで） */
+      padding: 10px 15px;
+      border-radius: 8px;
     }
     
     .member-row span {
-      min-width: 70px;
+      flex: 0 0 70px; /* 横幅を70pxで固定し、縮ませない */
       font-weight: 600;
       color: #667eea;
       font-size: 13px;
     }
     
-    .member-row input { 
-      flex: 1;
-      min-width: 80px;
+    /* 入力フィールド（氏名・備考）とセレクトボックス（年齢・性別）すべて */
+    .member-row input[type="text"],
+    .member-row .member-age,
+    .member-row .member-gender { 
+      flex: 1; /* 利用可能な残りのスペースを均等に分け合って横に伸びる */
+      min-width: 0; /* flexアイテムがはみ出るのを防ぐ魔法のプロパティ */
+      margin-bottom: 0; /* body側で設定されている margin-bottom: 15px を打ち消す */
+      padding: 10px;
+      font-size: 14px;
     }
     
     /* QR コード */
