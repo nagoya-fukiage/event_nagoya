@@ -189,6 +189,31 @@
       padding: 10px;
       font-size: 14px;
     }
+
+    /* 画面幅が600px以下のとき（スマホなど）に適用する設定 */
+    @media screen and (max-width: 600px) {
+      .member-row {
+        flex-direction: column; /* 縦並びのベースを作る */
+        align-items: stretch;   /* 子要素を横いっぱいに広げる */
+        gap: 8px;               /* 要素間の隙間を少し狭く */
+        padding: 12px;
+      }
+
+      /* 「代表者」「参加者X」のラベル */
+      .member-row span {
+        flex: none;
+        width: 100%;
+        margin-bottom: 2px;
+      }
+
+      /* 入力要素たちを2カラム（2行）に分けるための包み（※後述のHTML微調整用） */
+      /* もしHTMLを変えずに今の要素のまま綺麗に並べるなら、以下の指定がシンプルです */
+      .member-row input[type="text"],
+      .member-row .member-age,
+      .member-row .member-gender {
+        width: 100%; /* 完全に1個ずつ縦並びにする場合 */
+      }
+    }
     
     /* QR コード */
     #qrcode { 
