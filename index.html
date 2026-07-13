@@ -313,9 +313,7 @@
       <div>
         参加費の合計: <span id="totalFee">0</span>円<br>
         大人: <span id="adultFee">1000</span>円, 中学生以下: <span id="childFee">500</span>円<br>
-        お支払先PayPayURL: <a href="https://paypay.ne.jp/" target="_blank">https://paypay.ne.jp/</a><br>
-        ※お名前と参加人数をPayPayのメッセージ欄にご記入ください。<br>
-        ※当日現金支払いも可能です。
+        お支払い方法は追ってご連絡いたします。
       </div>
       <button type="submit">申請</button>
       <button type="button" onclick="closeApplyForm()">キャンセル</button>
@@ -326,7 +324,15 @@
   <div id="eventDetail">
     <h2 id="detailTitle"></h2>
     <div id="detailInfo"></div>
+    <div>受付用QRコード:</div>
     <div id="qrcode"></div>
+
+    <div>
+      <!-- お支払先PayPayURL: <a href="こちらをクリック" target="_blank">https://paypay.ne.jp/</a><br> -->
+      <!-- ※お名前と参加人数をPayPayのメッセージ欄にご記入ください。<br> -->
+      ※お支払先PayPayの案内は後日連絡します。当日現金支払いも可能です。
+    </div>
+    
     <button id="editBtn" onclick="showEditForm()">編集</button>
     <button id="cancelBtn" onclick="cancelApply()">申請取り消し</button>
     <button onclick="closeDetail()">閉じる</button>
